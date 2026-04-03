@@ -1,0 +1,325 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model SysUser {
+  id                 BigInt             @id @default(autoincrement())
+  username           String             @unique @db.VarChar(50)
+  passwordHash       String             @map("password_hash") @db.VarChar(255)
+  realName           String             @map("real_name") @db.VarChar(50)
+  avatar             String?            @db.VarChar(255)
+  classId            BigInt?            @map("class_id")
+  status             Int                @default(1) @db.TinyInt
+  lastLoginTime      DateTime?          @map("last_login_time")
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+  class              EduClass?          @relation("ClassStudents", fields: [classId], references: [id], onDelete: SetNull)
+  createdClasses     EduClass[]         @relation("CreatedClasses")
+  createdPapers      Paper[]            @relation("CreatedPapers")
+  userRoles          SysUserRole[]
+  publishedNotice    Notice[]           @relation("PublishedNotices")
+  loginLogs          LoginLog[]
+  refreshTokens      AuthRefreshToken[]
+  examRecords        ExamRecord[]       @relation("StudentExamRecords")
+  wrongBooks         WrongBook[]
+  createdMonitorLogs MonitorLog[]       @relation("MonitorLogOperator")
+  studentMonitorLogs MonitorLog[]       @relation("StudentMonitorLogs")
+
+  @@index([classId], map: "idx_class_id")
+  @@index([status], map: "idx_status")
+  @@map("sys_user")
+}
+
+model SysRole {
+  id        BigInt        @id @default(autoincrement())
+  roleCode  String        @unique @map("role_code") @db.VarChar(30)
+  roleName  String        @map("role_name") @db.VarChar(50)
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+  userRoles SysUserRole[]
+
+  @@map("sys_role")
+}
+
+model SysUserRole {
+  id     BigInt  @id @default(autoincrement())
+  userId BigInt  @map("user_id")
+  roleId BigInt  @map("role_id")
+  user   SysUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   SysRole @relation(fields: [roleId], references: [id])
+
+  @@unique([userId, roleId], map: "uk_user_role")
+  @@map("sys_user_role")
+}
+
+model EduClass {
+  id           BigInt            @id @default(autoincrement())
+  className    String            @unique @map("class_name") @db.VarChar(100)
+  classCode    String            @unique @map("class_code") @db.VarChar(50)
+  creatorId    BigInt            @map("creator_id")
+  studentCount Int               @default(0) @map("student_count")
+  status       Int               @default(1) @db.TinyInt
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @updatedAt @map("updated_at")
+  creator      SysUser           @relation("CreatedClasses", fields: [creatorId], references: [id])
+  students     SysUser[]         @relation("ClassStudents")
+  targetPapers PaperTargetClass[]
+
+  @@map("edu_class")
+}
+
+model Notice {
+  id         BigInt   @id @default(autoincrement())
+  title      String   @db.VarChar(200)
+  content    String   @db.Text
+  type       String   @db.VarChar(30)
+  status     Int      @default(1) @db.TinyInt
+  publisherId BigInt  @map("publisher_id")
+  publishTime DateTime? @map("publish_time")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  publisher  SysUser  @relation("PublishedNotices", fields: [publisherId], references: [id])
+
+  @@map("notice")
+}
+
+model Subject {
+  id          BigInt   @id @default(autoincrement())
+  subjectCode String   @unique @map("subject_code") @db.VarChar(30)
+  subjectName String   @unique @map("subject_name") @db.VarChar(50)
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([sortOrder], map: "idx_subject_sort_order")
+  @@map("subject")
+}
+
+model QuestionCategory {
+  id          BigInt     @id @default(autoincrement())
+  name        String     @db.VarChar(100)
+  subject     String     @db.VarChar(30)
+  description String?    @db.VarChar(255)
+  status      Int        @default(1) @db.TinyInt
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  questions   Question[]
+
+  @@unique([subject, name], map: "uk_question_category_subject_name")
+  @@index([subject], map: "idx_question_category_subject")
+  @@map("question_category")
+}
+
+model Question {
+  id         BigInt            @id @default(autoincrement())
+  subject    String            @db.VarChar(30)
+  categoryId BigInt?           @map("category_id")
+  type       String            @db.VarChar(30)
+  title      String            @db.Text
+  score      Int
+  options    Json?
+  answer     Json?
+  analysis   String?           @db.Text
+  status     Int               @default(1) @db.TinyInt
+  createdAt  DateTime          @default(now()) @map("created_at")
+  updatedAt  DateTime          @updatedAt @map("updated_at")
+  category   QuestionCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  paperQuestions PaperQuestion[]
+  recordAnswers  ExamRecordAnswer[]
+  wrongBooks     WrongBook[]
+
+  @@index([categoryId], map: "idx_question_category_id")
+  @@index([subject], map: "idx_question_subject")
+  @@index([type], map: "idx_question_type")
+  @@map("question")
+}
+
+model LoginLog {
+  id               BigInt   @id @default(autoincrement())
+  userId           BigInt?  @map("user_id")
+  usernameSnapshot String   @map("username_snapshot") @db.VarChar(50)
+  ip               String   @db.VarChar(64)
+  location         String   @db.VarChar(100)
+  browser          String   @db.VarChar(100)
+  os               String   @db.VarChar(100)
+  status           Int      @db.TinyInt
+  message          String   @db.VarChar(255)
+  loginTime        DateTime @map("login_time")
+  user             SysUser? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([status], map: "idx_login_status")
+  @@map("login_log")
+}
+
+model AuthRefreshToken {
+  id        BigInt    @id @default(autoincrement())
+  userId    BigInt    @map("user_id")
+  token     String    @unique @db.VarChar(512)
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  user      SysUser   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "idx_refresh_user_id")
+  @@map("auth_refresh_token")
+}
+
+model Paper {
+  id               BigInt             @id @default(autoincrement())
+  paperName        String             @map("paper_name") @db.VarChar(200)
+  subject          String             @db.VarChar(30)
+  totalScore       Int                @map("total_score")
+  duration         Int
+  startTime        DateTime?          @map("start_time")
+  endTime          DateTime?          @map("end_time")
+  status           Int                @default(0) @db.TinyInt
+  creatorId        BigInt             @map("creator_id")
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+  creator          SysUser            @relation("CreatedPapers", fields: [creatorId], references: [id])
+  paperQuestions   PaperQuestion[]
+  paperTargetClasses PaperTargetClass[]
+  examRecords      ExamRecord[]
+  monitorLogs      MonitorLog[]
+
+  @@index([subject], map: "idx_paper_subject")
+  @@index([status], map: "idx_paper_status")
+  @@index([creatorId], map: "idx_paper_creator_id")
+  @@map("paper")
+}
+
+model PaperQuestion {
+  id            BigInt             @id @default(autoincrement())
+  paperId       BigInt             @map("paper_id")
+  questionId    BigInt?            @map("question_id")
+  subject       String             @db.VarChar(30)
+  type          String             @db.VarChar(30)
+  title         String             @db.Text
+  options       Json?
+  answer        Json?
+  analysis      String?            @db.Text
+  sortOrder     Int                @map("sort_order")
+  score         Int
+  createdAt     DateTime           @default(now()) @map("created_at")
+  paper         Paper              @relation(fields: [paperId], references: [id], onDelete: Cascade)
+  question      Question?          @relation(fields: [questionId], references: [id], onDelete: SetNull)
+  recordAnswers ExamRecordAnswer[]
+  wrongBooks    WrongBook[]
+
+  @@unique([paperId, sortOrder], map: "uk_paper_question_sort")
+  @@index([paperId, sortOrder], map: "idx_paper_question_paper_sort")
+  @@index([questionId], map: "idx_paper_question_question_id")
+  @@map("paper_question")
+}
+
+model PaperTargetClass {
+  id        BigInt   @id @default(autoincrement())
+  paperId    BigInt  @map("paper_id")
+  classId    BigInt  @map("class_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+  paper      Paper   @relation(fields: [paperId], references: [id], onDelete: Cascade)
+  class      EduClass @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@unique([paperId, classId], map: "uk_paper_target_class")
+  @@index([paperId], map: "idx_paper_target_class_paper_id")
+  @@index([classId], map: "idx_paper_target_class_class_id")
+  @@map("paper_target_class")
+}
+
+model ExamRecord {
+  id                BigInt             @id @default(autoincrement())
+  paperId           BigInt             @map("paper_id")
+  studentId         BigInt             @map("student_id")
+  examNameSnapshot  String             @map("exam_name_snapshot") @db.VarChar(200)
+  subjectSnapshot   String             @map("subject_snapshot") @db.VarChar(30)
+  classNameSnapshot String             @map("class_name_snapshot") @db.VarChar(100)
+  totalScore        Int                @default(0) @map("total_score")
+  objectiveScore    Int                @default(0) @map("objective_score")
+  subjectiveScore   Int                @default(0) @map("subjective_score")
+  status            Int                @default(0) @db.TinyInt
+  startedAt         DateTime?          @map("started_at")
+  submitTime        DateTime?          @map("submit_time")
+  markedAt          DateTime?          @map("marked_at")
+  forcedSubmit      Int                @default(0) @map("forced_submit") @db.TinyInt
+  cheatCount        Int                @default(0) @map("cheat_count")
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+  paper             Paper              @relation(fields: [paperId], references: [id], onDelete: Cascade)
+  student           SysUser            @relation("StudentExamRecords", fields: [studentId], references: [id], onDelete: Cascade)
+  answers           ExamRecordAnswer[]
+  wrongBooks        WrongBook[]
+
+  @@unique([paperId, studentId], map: "uk_exam_record_paper_student")
+  @@index([studentId], map: "idx_exam_record_student_id")
+  @@index([status], map: "idx_exam_record_status")
+  @@index([submitTime], map: "idx_exam_record_submit_time")
+  @@map("exam_record")
+}
+
+model ExamRecordAnswer {
+  id              BigInt        @id @default(autoincrement())
+  recordId        BigInt        @map("record_id")
+  questionId      BigInt?       @map("question_id")
+  paperQuestionId BigInt        @map("paper_question_id")
+  answer          Json?
+  isCorrect       Int           @default(0) @map("is_correct") @db.TinyInt
+  score           Int           @default(0)
+  comment         String?       @db.VarChar(255)
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+  record          ExamRecord    @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  question        Question?     @relation(fields: [questionId], references: [id], onDelete: SetNull)
+  paperQuestion   PaperQuestion @relation(fields: [paperQuestionId], references: [id], onDelete: Cascade)
+
+  @@unique([recordId, paperQuestionId], map: "uk_record_answer_paper_question")
+  @@index([recordId], map: "idx_record_answer_record_id")
+  @@index([questionId], map: "idx_record_answer_question_id")
+  @@index([paperQuestionId], map: "idx_record_answer_paper_question_id")
+  @@map("exam_record_answer")
+}
+
+model WrongBook {
+  id             BigInt        @id @default(autoincrement())
+  studentId      BigInt        @map("student_id")
+  recordId       BigInt        @map("record_id")
+  paperQuestionId BigInt       @map("paper_question_id")
+  questionId     BigInt?       @map("question_id")
+  myAnswer       Json?         @map("my_answer")
+  correctAnswer  Json?         @map("correct_answer")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+  student        SysUser       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  record         ExamRecord    @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  paperQuestion  PaperQuestion @relation(fields: [paperQuestionId], references: [id], onDelete: Cascade)
+  question       Question?     @relation(fields: [questionId], references: [id], onDelete: SetNull)
+
+  @@unique([studentId, recordId, paperQuestionId], map: "uk_wrong_book_student_record_paper_question")
+  @@index([studentId], map: "idx_wrong_book_student_id")
+  @@index([questionId], map: "idx_wrong_book_question_id")
+  @@index([paperQuestionId], map: "idx_wrong_book_paper_question_id")
+  @@map("wrong_book")
+}
+
+model MonitorLog {
+  id          BigInt    @id @default(autoincrement())
+  paperId      BigInt   @map("paper_id")
+  studentId    BigInt?  @map("student_id")
+  operatorId   BigInt?  @map("operator_id")
+  type         String   @db.VarChar(50)
+  content      String   @db.VarChar(255)
+  result       String   @db.VarChar(50)
+  createdAt    DateTime @default(now()) @map("created_at")
+  paper        Paper    @relation(fields: [paperId], references: [id], onDelete: Cascade)
+  student      SysUser? @relation("StudentMonitorLogs", fields: [studentId], references: [id], onDelete: SetNull)
+  operator     SysUser? @relation("MonitorLogOperator", fields: [operatorId], references: [id], onDelete: SetNull)
+
+  @@index([paperId], map: "idx_monitor_log_paper_id")
+  @@index([studentId], map: "idx_monitor_log_student_id")
+  @@map("monitor_log")
+}

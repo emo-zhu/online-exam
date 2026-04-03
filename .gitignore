@@ -1,0 +1,25 @@
+ # frontend
+  frontend/node_modules
+  frontend/dist
+  frontend/.next                                                                                       
+  frontend/.vite                                                                                       
+  frontend/.env*                                                                                       
+                                                                                                       
+  # backend                             
+  backend/node_modules 
+  backend/vendor
+  backend/target
+  backend/build
+  backend/dist
+  backend/.env*
+
+  # common
+  .DS_Store
+  .idea
+  .vscode
+  
+# others
+测试用例.md
+模拟数据.md
+在线考试系统需求文档.md
+git提交.md

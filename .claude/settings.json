@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C \"/Users/emozhu/Desktop/NewWorkspaceFront/online-exam-frontend\" rev-parse --is-inside-work-tree)",
+      "Bash(npm --prefix \"/Users/emozhu/Desktop/NewWorkspaceFront/online-exam-backend\" install)",
+      "Bash(npm --prefix \"/Users/emozhu/Desktop/NewWorkspaceFront/online-exam-backend\" run prisma:validate)",
+      "Bash(npm --prefix \"/Users/emozhu/Desktop/NewWorkspaceFront/online-exam-backend\" run prisma:generate)",
+      "Bash(curl -sS \"http://localhost:3000/api/v1/health\")",
+      "Bash(curl -sS -X POST \"http://localhost:3000/api/v1/auth/captcha\")",
+      "Bash(curl -sS \"http://localhost:3000/api/v1/auth/captcha\")"
+    ]
+  }
+}

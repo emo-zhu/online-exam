@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm --prefix \"/Users/emozhu/Desktop/NewWorkspaceFront/online-exam-frontend\" run build)"
+    ]
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name": "online-exam-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "prisma:generate": "prisma generate",
+    "prisma:validate": "prisma validate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:seed": "node prisma/seed.js"
+  },
+  "dependencies": {
+    "@koa/cors": "^5.0.0",
+    "@koa/router": "^13.1.0",
+    "@prisma/client": "^6.6.0",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
+    "jsonwebtoken": "^9.0.2",
+    "koa": "^2.15.3",
+    "koa-body": "^6.0.1",
+    "koa-helmet": "^8.0.1",
+    "sanitize-html": "^2.17.0",
+    "xlsx": "^0.18.5",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "prisma": "^6.6.0"
+  }
+}

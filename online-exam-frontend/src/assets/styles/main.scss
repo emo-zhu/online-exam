@@ -1,0 +1,249 @@
+@use 'reset';
+@use 'variables' as *;
+
+:root {
+    --premium-bg: #f3f4f6;
+    /* 柔和的灰蓝色背景 */
+    --glass-bg: rgba(255, 255, 255, 0.85);
+    /* 提高透明度，增强浅色模式下的可读性 */
+    --glass-border: 1px solid rgba(255, 255, 255, 0.6);
+    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+    --card-radius: 16px;
+    --text-primary: #1f2937;
+    --text-secondary: #6b7280;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: var(--premium-bg);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+/* 布局工具 */
+.app-container {
+    padding: 24px;
+    min-height: 100vh;
+    transition: all 0.3s ease;
+}
+
+.filter-container {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+    background: rgba(255, 255, 255, 0.6);
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.filter-item {
+    display: flex;
+    align-items: center;
+
+    .label {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        margin-right: 10px;
+        white-space: nowrap;
+    }
+}
+
+.filter-buttons {
+    margin-left: 20px;
+    /* 调整默认布局，避免按钮距离筛选项过远 */
+    /* 在弹性布局中将按钮推到右侧 */
+    display: flex;
+    gap: 12px;
+}
+
+/* 卡片样式 */
+.premium-card {
+    background: var(--glass-bg) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: var(--glass-border) !important;
+    box-shadow: var(--glass-shadow) !important;
+    border-radius: var(--card-radius) !important;
+    overflow: hidden;
+    /* 防止内容溢出 */
+
+    .el-card__body {
+        padding: 24px;
+    }
+}
+
+/* 现代表格样式 */
+.el-table {
+    --el-table-border-color: transparent;
+    --el-table-header-bg-color: transparent;
+    --el-table-tr-bg-color: transparent;
+
+    background-color: transparent !important;
+    border-radius: 8px;
+
+    th.el-table__cell {
+        background-color: rgba(243, 244, 246, 0.6) !important;
+        /* 柔和的灰色表头 */
+        color: var(--text-primary);
+        font-weight: 600;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+        height: 56px;
+    }
+
+    tr {
+        background-color: transparent !important;
+        transition: all 0.2s;
+
+        &:hover>td.el-table__cell {
+            background-color: rgba(64, 158, 255, 0.08) !important;
+            /* 更明显的悬停效果 */
+        }
+    }
+
+    td.el-table__cell {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.04) !important;
+        padding: 16px 0;
+        color: var(--text-secondary);
+    }
+}
+
+/* 分页区域 */
+.pagination-container {
+    margin-top: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* 修正垂直对齐 */
+    /* 居中分页，视觉更平衡 */
+    padding: 10px 0;
+
+    .total-text {
+        margin-right: 16px;
+        color: var(--text-secondary);
+        font-size: 14px;
+        font-weight: 500;
+        /* 轻微加粗，提升可读性 */
+    }
+}
+
+/* 按钮增强 */
+.el-button {
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+    // 仅为常规按钮设置尺寸和内边距（不含链接、文字、圆形、圆角按钮）
+    &:not(.is-link):not(.is-text):not(.is-circle):not(.is-round) {
+        height: 36px;
+        padding: 0 20px;
+    }
+
+    // 主要按钮样式
+    &--primary:not(.is-link):not(.is-text):not(.is-plain) {
+        background: linear-gradient(135deg, #409EFF 0%, #3a8ee6 100%);
+        border: none;
+        box-shadow: 0 4px 6px rgba(64, 158, 255, 0.25);
+        color: #ffffff;
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(64, 158, 255, 0.35);
+        }
+
+        &:active {
+            transform: translateY(0);
+        }
+    }
+
+    // 危险按钮样式
+    &--danger:not(.is-link):not(.is-text):not(.is-plain) {
+        box-shadow: 0 4px 6px rgba(245, 108, 108, 0.25);
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(245, 108, 108, 0.35);
+        }
+    }
+
+    // 修正表格中的链接按钮与文字按钮样式
+    &.is-link,
+    &.is-text {
+        height: auto;
+        padding: 4px 8px;
+        background: transparent !important;
+        box-shadow: none !important;
+        border: none !important;
+
+        &:hover {
+            opacity: 0.8;
+            transform: none !important; // 链接按钮不使用上浮效果
+            background-color: transparent !important; // 悬停时保持透明背景
+        }
+    }
+}
+
+/* 弹窗增强 */
+.el-dialog {
+    border-radius: 4px !important;
+    /* 调整圆角，保持更利落的视觉效果 */
+    border-radius: 8px !important;
+    overflow: hidden;
+    background-color: #ffffff !important;
+    box-shadow: 0 12px 32px 4px rgba(0, 0, 0, 0.04), 0 8px 20px rgba(0, 0, 0, 0.08) !important;
+
+    .el-dialog__header {
+        margin-right: 0;
+        padding: 20px 24px;
+        border-bottom: none;
+        /* 头部保持干净，不额外加重边框 */
+    }
+
+    .el-dialog__body {
+        padding: 30px 24px;
+    }
+
+    .el-dialog__footer {
+        padding: 20px 24px;
+        border-top: none;
+        /* 底部保持简洁 */
+        background-color: transparent;
+        /* 保持纯白视觉 */
+    }
+}
+
+/* 全局滚动条样式 */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 3px;
+    transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
